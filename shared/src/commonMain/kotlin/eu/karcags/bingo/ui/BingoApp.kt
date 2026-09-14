@@ -3,13 +3,10 @@ package eu.karcags.bingo.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import eu.karcags.bingo.repository.BingoRepository
 
 @Composable
@@ -21,13 +18,19 @@ fun BingoApp(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("KMP Bingo") },
+                title = {
+                    Text(
+                        text = "KMP Bingo",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                },
                 navigationIcon = {
                     if (currentScreen != Screen.MainMenu) {
                         TextButton(onClick = { currentScreen = Screen.MainMenu }) {
                             Text(
-                                text = "< Home,",
-                                color = Color.White,
+                                text = "< Home",
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
