@@ -7,11 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import eu.karcags.bingo.repository.BingoRepository
+import eu.karcags.bingo.repository.PersistentBingoRepository
 
 @Composable
 fun BingoApp(
-    repository: BingoRepository,
+    repository: PersistentBingoRepository,
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.MainMenu) }
 
@@ -52,7 +52,7 @@ fun BingoApp(
                 is Screen.PresetList -> PresetListScreen(
                     repository = repository,
                 ) {
-                    currentScreen = Screen.GamePlay(it.id)
+                    currentScreen = Screen.GamePlay(it)
                 }
 
                 is Screen.GameList -> GameListScreen(
@@ -61,7 +61,7 @@ fun BingoApp(
                     currentScreen = Screen.GamePlay(it)
                 }
 
-                is Screen.GamePlay -> GamePlayScreen(screen.gameId, repository) {
+                is Screen.GamePlay -> GamePlayScreen(screen.game, repository) {
                     currentScreen = Screen.GameList
                 }
             }

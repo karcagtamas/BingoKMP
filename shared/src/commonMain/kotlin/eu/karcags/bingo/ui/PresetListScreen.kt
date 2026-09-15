@@ -16,9 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,16 +29,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.karcags.bingo.model.Game
+import eu.karcags.bingo.model.Preset
 import eu.karcags.bingo.repository.BingoRepository
+import eu.karcags.bingo.repository.PersistentBingoRepository
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 @Composable
 fun PresetListScreen(
-    repository: BingoRepository,
+    repository: PersistentBingoRepository,
     onGameCreated: (Game) -> Unit,
 ) {
-    var presets by remember { mutableStateOf(repository.getPresets()) }
+    val scope = rememberCoroutineScope()
+    var presets by remember { mutableStateOf<List<Preset>>(emptyList()) }
     var jsonInput by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        presets = repository.getPresets()
+    }
 
     Column(
         modifier = Modifier
@@ -76,7 +87,10 @@ fun PresetListScreen(
                         }
                         Button(
                             onClick = {
-                                onGameCreated(repository.createGame(preset))
+                                scope.launch {
+                                    val newGame = repository.createGameFromPreset(preset)
+                                    onGameCreated(newGame)
+                                }
                             }
                         ) {
                             Text("Generate")
@@ -107,13 +121,16 @@ fun PresetListScreen(
 
         Button(
             onClick = {
-                val res = repository.importPresetFromJson(jsonInput)
-                if (res.isSuccess) {
-                    presets = repository.getPresets()
-                    jsonInput = ""
-                    errorMessage = ""
-                } else {
-                    errorMessage = "Import Failied: ${res.exceptionOrNull()?.message}"
+                scope.launch {
+                    try {
+                        val parsedPreset = Json.decodeFromString<Preset>(jsonInput)
+                        repository.savePreset(parsedPreset)
+                        presets = repository.getPresets()
+                        jsonInput = ""
+                        errorMessage = ""
+                    } catch (e: Exception) {
+                        errorMessage = "Import Failed: ${e.message}"
+                    }
                 }
             },
             modifier = Modifier
