@@ -1,27 +1,10 @@
 package eu.karcags.bingo.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,19 +14,20 @@ import androidx.compose.ui.unit.sp
 import eu.karcags.bingo.model.Game
 import eu.karcags.bingo.model.Preset
 import eu.karcags.bingo.repository.BingoRepository
-import eu.karcags.bingo.repository.PersistentBingoRepository
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 @Composable
 fun PresetListScreen(
-    repository: PersistentBingoRepository,
+    repository: BingoRepository,
     onGameCreated: (Game) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var presets by remember { mutableStateOf<List<Preset>>(emptyList()) }
     var jsonInput by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    var exportedPayload by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         presets = repository.getPresets()
@@ -75,29 +59,64 @@ fun PresetListScreen(
                             .fillMaxWidth()
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column {
                             Text(
-                                preset.name,
+                                text = preset.name,
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
                                 "${preset.matrixSize} x ${preset.matrixSize} Grid",
                             )
                         }
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    val newGame = repository.createGameFromPreset(preset)
-                                    onGameCreated(newGame)
-                                }
+                        Row {
+                            TextButton(
+                                onClick = {
+                                    exportedPayload = repository.exportPresetToJson(preset)
+                                },
+                            ) {
+                                Text("Export")
                             }
-                        ) {
-                            Text("Generate")
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        onGameCreated(repository.createGameFromPreset(preset))
+                                    }
+                                },
+                            ) {
+                                Text("Generate")
+                            }
                         }
                     }
                 }
             }
+        }
+
+        if (exportedPayload.isNotEmpty()) {
+            OutlinedTextField(
+                value = exportedPayload,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Exported JSON (Copy This Block)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .padding(vertical = 8.dp),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary),
+            )
+
+            Button(
+                onClick = {
+                    exportedPayload = ""
+                },
+                modifier = Modifier
+                    .align(Alignment.End),
+            ) {
+                Text("Dismiss")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         OutlinedTextField(

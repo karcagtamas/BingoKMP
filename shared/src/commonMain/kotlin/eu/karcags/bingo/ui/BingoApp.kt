@@ -8,11 +8,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import eu.karcags.bingo.repository.PersistentBingoRepository
+import eu.karcags.bingo.repository.BingoRepository
 
 @Composable
 fun BingoApp(
-    repository: PersistentBingoRepository,
+    repository: BingoRepository,
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.MainMenu) }
 

@@ -1,12 +1,10 @@
 package eu.karcags.bingo.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -21,13 +19,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.karcags.bingo.model.Game
-import eu.karcags.bingo.repository.PersistentBingoRepository
+import eu.karcags.bingo.repository.BingoRepository
 import kotlinx.coroutines.launch
 
 @Composable
 fun GamePlayScreen(
     initialGame: Game,
-    repository: PersistentBingoRepository,
+    repository: BingoRepository,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()

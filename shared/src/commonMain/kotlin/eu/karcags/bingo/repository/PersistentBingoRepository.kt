@@ -9,12 +9,18 @@ import eu.karcags.bingo.model.Preset
 import eu.karcags.bingo.model.Tile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import kotlin.time.Clock
 
-class PersistentBingoRepository(private val dao: BingoDao) {
+class PersistentBingoRepository(private val dao: BingoDao) : BingoRepository {
 
-    suspend fun getPresets(): List<Preset> = withContext(Dispatchers.IO) {
+    private val jsonEngine = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+    }
+
+    override suspend fun getPresets(): List<Preset> = withContext(Dispatchers.IO) {
         val list = dao.getAllPresets()
 
         if (list.isEmpty()) {
@@ -34,17 +40,17 @@ class PersistentBingoRepository(private val dao: BingoDao) {
         }
     }
 
-    suspend fun getGames(): List<Game> = withContext(Dispatchers.IO) {
+    override suspend fun getGames(): List<Game> = withContext(Dispatchers.IO) {
         dao.getAllGames().map {
             Game(it.id, it.presetId, it.presetName, it.matrixSize, it.createdAt, it.grid, it.isWon)
         }
     }
 
-    suspend fun savePreset(preset: Preset) = withContext(Dispatchers.IO) {
+    override suspend fun savePreset(preset: Preset) = withContext(Dispatchers.IO) {
         dao.insertPreset(PresetEntity(preset.id, preset.name, preset.matrixSize, preset.fixedTiles, preset.poolTiles))
     }
 
-    suspend fun createGameFromPreset(preset: Preset): Game = withContext(Dispatchers.IO) {
+    override suspend fun createGameFromPreset(preset: Preset): Game = withContext(Dispatchers.IO) {
         val size = preset.matrixSize
         val shuffledPool = preset.poolTiles.shuffled().toMutableList()
         val fixedMap = preset.fixedTiles.associateBy { it.row to it.col }
@@ -93,7 +99,7 @@ class PersistentBingoRepository(private val dao: BingoDao) {
         newGame
     }
 
-    suspend fun toggleTile(game: Game, row: Int, col: Int): Game = withContext(Dispatchers.IO) {
+    override suspend fun toggleTile(game: Game, row: Int, col: Int): Game = withContext(Dispatchers.IO) {
         val tile = game.grid[row][col]
 
         if (tile.isPermanentlyToggled) return@withContext game
@@ -119,6 +125,10 @@ class PersistentBingoRepository(private val dao: BingoDao) {
             )
         )
         updatedGame
+    }
+
+    override fun exportPresetToJson(preset: Preset): String {
+        return jsonEngine.encodeToString(preset)
     }
 
     private fun checkWinCondition(grid: List<List<Tile>>, size: Int): Boolean {
