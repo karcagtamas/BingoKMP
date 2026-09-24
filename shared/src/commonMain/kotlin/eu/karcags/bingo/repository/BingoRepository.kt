@@ -12,4 +12,5 @@ interface BingoRepository {
     suspend fun toggleTile(game: Game, row: Int, col: Int): Game
 
     fun exportPresetToJson(preset: Preset): String
+    fun validatePreset(name: String, size: Int, pool: List<String>): Result<Unit>
 }

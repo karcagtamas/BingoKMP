@@ -64,9 +64,24 @@ fun BingoApp(
 
                 is Screen.PresetList -> PresetListScreen(
                     repository = repository,
-                ) {
-                    currentScreen = Screen.GamePlay(it)
-                }
+                    onGameCreated = {
+                        currentScreen = Screen.GamePlay(it)
+                    },
+                    onNavigateToEditor = { targetPreset ->
+                        currentScreen = Screen.PresetEditor(targetPreset)
+                    }
+                )
+
+                is Screen.PresetEditor -> PresetEditorScreen(
+                    editingPreset = screen.editingPreset,
+                    repository = repository,
+                    onSaveSuccess = {
+                        currentScreen = Screen.PresetList
+                    },
+                    onCancel = {
+                        currentScreen = Screen.PresetList
+                    }
+                )
 
                 is Screen.GameList -> GameListScreen(
                     repository = repository,

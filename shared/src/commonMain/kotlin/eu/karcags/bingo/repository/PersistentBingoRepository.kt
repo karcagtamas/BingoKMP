@@ -131,6 +131,20 @@ class PersistentBingoRepository(private val dao: BingoDao) : BingoRepository {
         return jsonEngine.encodeToString(preset)
     }
 
+    override fun validatePreset(name: String, size: Int, pool: List<String>): Result<Unit> {
+        if (name.isBlank()) return Result.failure(Exception("Preset name cannot be empty"))
+        if (size !in 3..7) return Result.failure(Exception("Grid size must be between 3x3 and 7x7"))
+
+        val requiredTiles = (size * size) - 1
+        val nonBlankPool = pool.filter { it.isNotBlank() }
+
+        if (nonBlankPool.size < requiredTiles) {
+            return Result.failure(Exception("Insufficient pool items. Need at least $requiredTiles items, you have ${nonBlankPool.size}"))
+        }
+
+        return Result.success(Unit)
+    }
+
     private fun checkWinCondition(grid: List<List<Tile>>, size: Int): Boolean {
         if (grid.any { row -> row.all { it.isChecked } }) return true
         for (col in 0 until size) {

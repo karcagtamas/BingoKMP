@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 fun PresetListScreen(
     repository: BingoRepository,
     onGameCreated: (Game) -> Unit,
+    onNavigateToEditor: (Preset?) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var presets by remember { mutableStateOf<List<Preset>>(emptyList()) }
@@ -38,11 +39,29 @@ fun PresetListScreen(
             .fillMaxSize()
             .padding(16.dp),
     ) {
-        Text(
-            "Available Layouts",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Available Layouts",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Button(
+                onClick = {
+                    onNavigateToEditor(null)
+                }
+            ) {
+                Text("+ Create Custom")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         LazyColumn(
             modifier = Modifier
                 .weight(1f),
@@ -70,7 +89,16 @@ fun PresetListScreen(
                                 "${preset.matrixSize} x ${preset.matrixSize} Grid",
                             )
                         }
-                        Row {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    onNavigateToEditor(preset)
+                                }
+                            ) {
+                                Text("Edit")
+                            }
                             TextButton(
                                 onClick = {
                                     exportedPayload = repository.exportPresetToJson(preset)
