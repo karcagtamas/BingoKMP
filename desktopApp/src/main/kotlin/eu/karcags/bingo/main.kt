@@ -2,7 +2,7 @@ package eu.karcags.bingo
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import eu.karcags.bingo.database.DesktopDBConstructor
+import eu.karcags.bingo.database.createBingoDatabase
 import eu.karcags.bingo.repository.PersistentBingoRepository
 
 fun main() = application {
@@ -10,7 +10,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "Bingo",
     ) {
-        val database = DesktopDBConstructor().initialize()
+        val database = createBingoDatabase()
         val repository = PersistentBingoRepository(database.bingoDao())
         App(repository)
     }
