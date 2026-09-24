@@ -16,6 +16,7 @@ data class FixedTile(
     val row: Int,
     val col: Int,
     val label: String,
+    val isPermanentlyToggled: Boolean = false,
 )
 
 @Serializable
@@ -35,4 +36,5 @@ data class Tile(
     val label: String,
     val isChecked: Boolean = false,
     val isFixed: Boolean = false,
+    val isPermanentlyToggled: Boolean = false,
 )

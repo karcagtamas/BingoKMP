@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import eu.karcags.bingo.repository.PersistentBingoRepository
 
 @Composable
@@ -29,9 +30,21 @@ fun BingoApp(
                     if (currentScreen != Screen.MainMenu) {
                         TextButton(onClick = { currentScreen = Screen.MainMenu }) {
                             Text(
-                                text = "< Home",
+                                text = "Back Home",
                                 color = MaterialTheme.colorScheme.primary,
                             )
+                        }
+                    }
+
+                    if (currentScreen is Screen.GamePlay) {
+                        Button(
+                            onClick = {
+                                currentScreen = Screen.GameList
+                            },
+                            modifier = Modifier
+                                .padding(end = 8.dp),
+                        ) {
+                            Text("Save & Close")
                         }
                     }
                 }

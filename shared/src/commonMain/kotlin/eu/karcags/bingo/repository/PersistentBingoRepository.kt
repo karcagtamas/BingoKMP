@@ -8,7 +8,6 @@ import eu.karcags.bingo.model.Game
 import eu.karcags.bingo.model.Preset
 import eu.karcags.bingo.model.Tile
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -54,10 +53,20 @@ class PersistentBingoRepository(private val dao: BingoDao) {
             List(size) { col ->
                 val fixed = fixedMap[row to col]
                 if (fixed != null) {
-                    Tile(id = "fixed_${row}_${col}", label = fixed.label, isChecked = false, isFixed = true)
+                    Tile(
+                        id = "fixed_${row}_${col}",
+                        label = fixed.label,
+                        isChecked = fixed.isPermanentlyToggled,
+                        isFixed = true,
+                        isPermanentlyToggled = fixed.isPermanentlyToggled,
+                    )
                 } else {
                     val label = if (shuffledPool.isNotEmpty()) shuffledPool.removeAt(0) else "Empty Slot"
-                    Tile(id = "rand_${row}_${col}_${Random.nextInt()}", label = label, isChecked = false)
+                    Tile(
+                        id = "rand_${row}_${col}_${Random.nextInt()}",
+                        label = label,
+                        isChecked = false,
+                    )
                 }
             }
         }
@@ -70,7 +79,6 @@ class PersistentBingoRepository(private val dao: BingoDao) {
             createdAt = Clock.System.now().toEpochMilliseconds(),
             grid = grid,
         )
-
         dao.insertGame(
             GameEntity(
                 newGame.id,
@@ -86,13 +94,17 @@ class PersistentBingoRepository(private val dao: BingoDao) {
     }
 
     suspend fun toggleTile(game: Game, row: Int, col: Int): Game = withContext(Dispatchers.IO) {
+        val tile = game.grid[row][col]
+
+        if (tile.isPermanentlyToggled) return@withContext game
+
         val updatedGrid = game.grid.mapIndexed { r, gridRow ->
             gridRow.mapIndexed { c, tile ->
                 if (r == row && c == col) tile.copy(isChecked = !tile.isChecked) else tile
             }
         }
 
-        val isWon = checkWin(updatedGrid, game.matrixSize)
+        val isWon = checkWinCondition(updatedGrid, game.matrixSize)
         val updatedGame = game.copy(grid = updatedGrid, isWon = isWon)
 
         dao.insertGame(
@@ -109,7 +121,7 @@ class PersistentBingoRepository(private val dao: BingoDao) {
         updatedGame
     }
 
-    private fun checkWin(grid: List<List<Tile>>, size: Int): Boolean {
+    private fun checkWinCondition(grid: List<List<Tile>>, size: Int): Boolean {
         if (grid.any { row -> row.all { it.isChecked } }) return true
         for (col in 0 until size) {
             if ((0 until size).all { r -> grid[r][col].isChecked }) return true
